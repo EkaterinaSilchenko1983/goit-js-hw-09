@@ -1,18 +1,19 @@
-const formEl = document.querySelector('.form');
+import Notiflix from 'notiflix';
+const form = document.querySelector('.form');
 const btnEl = document.querySelector('button');
 const delayEl = document.querySelector('input[name="delay"]');
 const stepEl = document.querySelector('input[name="step"]');
 const amountEl = document.querySelector('input[name="amount"]');
-
-let delay = Number(delayEl.value);
-let step = Number(stepEl.value);
-let amount = Number(amountEl.value);
+let promiseId = null;
+// let delay = Number(delayEl.value);
+// let step = Number(stepEl.value);
+// let amount = Number(amountEl.value);
 
 function createPromise(position, delay) {
   return new Promise((resolve, reject) => {
     const shouldResolve = Math.random() > 0.3;
 
-    setTimeout(() => {
+    promiseId = setTimeout(() => {
       if (shouldResolve) {
         resolve({ position, delay }); // Fulfill
       } else {
@@ -22,19 +23,29 @@ function createPromise(position, delay) {
   });
 }
 
-createPromise(2, 1500)
-  .then(({ position, delay }) => {
-    console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
-  })
-  .catch(({ position, delay }) => {
-    console.log(`❌ Rejected promise ${position} in ${delay}ms`);
-  });
+form.addEventListener('submit', onClick);
 
-formEl.addEventListener('submit', onSubmit);
-
-function onSubmit(event) {
+function onClick(event) {
   event.preventDefault();
+
+  let delay = Number(delayEl.value);
+  let step = Number(stepEl.value);
+  let amount = Number(amountEl.value);
+
   for (let i = 0; i < amount; i += 1) {
-    createPromise(i + 1, delay + step * i);
+    createPromise(i + 1, delay + step * i)
+      .then(({ position, delay }) => {
+        Notiflix.Notify.failure(
+          `✅ Fulfilled promise ${position} in ${delay}ms`
+        );
+      })
+      .catch(({ position, delay }) => {
+        Notiflix.Notify.failure(
+          `❌ Rejected promise ${position} in ${delay}ms`
+        );
+      });
   }
+
+  event.currentTarget.reset();
+  // clearInterval(timerId);
 }
